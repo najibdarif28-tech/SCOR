@@ -16,21 +16,22 @@ DARK_TEXT = RGBColor(0x21, 0x2B, 0x36)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 
 
-def latest_uploaded_pptx() -> Path:
+def latest_uploaded_template() -> Path:
     excluded_outputs = {
         "SCOR_Contractual_Summary_Using_Uploaded_Template.pptx",
         "SCOR_Moodys_Contractual_Situation_Presentation.pptx",
     }
+    template_candidates = list(Path(".").glob("*.potx")) + list(Path(".").glob("*.pptx"))
     candidates = sorted(
-        [p for p in Path(".").glob("*.pptx") if p.name not in excluded_outputs],
+        [p for p in template_candidates if p.name not in excluded_outputs],
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )
     if not candidates:
         # Fallback if only generated files exist.
-        candidates = sorted(Path(".").glob("*.pptx"), key=lambda p: p.stat().st_mtime, reverse=True)
+        candidates = sorted(template_candidates, key=lambda p: p.stat().st_mtime, reverse=True)
     if not candidates:
-        raise FileNotFoundError("No .pptx file found in /workspace.")
+        raise FileNotFoundError("No .potx or .pptx template file found in /workspace.")
     return candidates[0]
 
 
@@ -248,7 +249,7 @@ def next_steps_slide(prs: Presentation) -> None:
 
 
 def build(output_path: Path, template_path: Path | None = None) -> None:
-    template_path = template_path or latest_uploaded_pptx()
+    template_path = template_path or latest_uploaded_template()
     prs = Presentation(str(template_path))
 
     title_slide(prs)
