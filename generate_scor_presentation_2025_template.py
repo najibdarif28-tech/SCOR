@@ -4,12 +4,11 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+from PIL import Image, ImageDraw
 from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.dml.color import RGBColor
 from pptx.enum.chart import XL_CHART_TYPE
-from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE
-from pptx.enum.text import PP_ALIGN
 from pptx.util import Pt
 
 
@@ -58,6 +57,46 @@ def set_placeholder_text(slide, idx: int, text: str):
         slide.placeholders[idx].text = text
     except KeyError:
         return
+
+
+def style_table(table):
+    # Moody's-inspired table styling with readable typography.
+    header_fill = RGBColor(0x00, 0x35, 0x7A)
+    header_text = RGBColor(0xFF, 0xFF, 0xFF)
+    band_fill = RGBColor(0xE9, 0xF0, 0xFA)
+    body_text = RGBColor(0x21, 0x2B, 0x36)
+
+    for c in range(len(table.columns)):
+        cell = table.cell(0, c)
+        cell.fill.solid()
+        cell.fill.fore_color.rgb = header_fill
+        p = cell.text_frame.paragraphs[0]
+        p.font.bold = True
+        p.font.size = Pt(11)
+        p.font.color.rgb = header_text
+
+    for r in range(1, len(table.rows)):
+        for c in range(len(table.columns)):
+            cell = table.cell(r, c)
+            if r % 2 == 0:
+                cell.fill.solid()
+                cell.fill.fore_color.rgb = band_fill
+            p = cell.text_frame.paragraphs[0]
+            p.font.size = Pt(10)
+            p.font.color.rgb = body_text
+
+
+def create_round_icon(path: Path, label: str, fill_rgb=(0, 53, 122)):
+    img = Image.new("RGBA", (280, 280), (255, 255, 255, 0))
+    draw = ImageDraw.Draw(img)
+    draw.ellipse((10, 10, 270, 270), fill=(*fill_rgb, 255))
+    text_color = (255, 255, 255, 255)
+    # Use default PIL font for portability.
+    bbox = draw.textbbox((0, 0), label)
+    tw = bbox[2] - bbox[0]
+    th = bbox[3] - bbox[1]
+    draw.text(((280 - tw) / 2, (280 - th) / 2), label, fill=text_color)
+    img.save(path)
 
 
 def add_cover(prs: Presentation):
@@ -112,16 +151,17 @@ def add_contract_table(prs: Presentation):
         table.cell(0, c).text = h
 
     rows = [
-        ["Base Order Form", "23 Dec 2016", "00073841.0", "Framework baseline for current service", "Legacy baseline"],
-        ["Renewal Notification", "23 Dec 2023", "00073841.7", "Annual renewal continuity", "GBP 50,364"],
-        ["Renewal Notification", "23 Dec 2024", "00073841.8", "Annual renewal continuity", "GBP 52,379"],
-        ["Renewal Notification", "23 Dec 2025", "00073841.9", "Annual renewal continuity", "GBP 53,950"],
-        ["Amendment 1", "23 Dec 2025", "00073841.9", "Name/address + sanctions clause update", "No explicit change"],
-        ["Current Subscription", "23 Dec 2025 - 22 Dec 2026", "ERS/SG stack", "Active use in capital modelling workflows", "GBP 53,950"],
+        ["Renewal 2023", "23 Dec 2023", "00073841.7", "Annual renewal", "GBP 50,364"],
+        ["Renewal 2024", "23 Dec 2024", "00073841.8", "Annual renewal", "GBP 52,379"],
+        ["Renewal 2025", "23 Dec 2025", "00073841.9", "Annual renewal", "GBP 53,950"],
+        ["Amendment 1", "23 Dec 2025", "00073841.9", "Legal name/address update", "No fee change"],
+        ["Current term", "23 Dec 2025 - 22 Dec 2026", "ERS/SG", "Active in SII modeling", "GBP 53,950"],
+        ["Commercial note", "2025 discussion", "Sales guidance", "3% uplift vs 6-10% standard", "Informational"],
     ]
     for r, row in enumerate(rows, start=1):
         for c, value in enumerate(row):
             table.cell(r, c).text = value
+    style_table(table)
 
 
 def add_fee_trend(prs: Presentation):
@@ -170,20 +210,19 @@ def add_use_case(prs: Presentation):
         "• Assess implications of NumberOfBonds=1 and Coupon=0",
     )
 
-    # Icon accents in the two content columns
-    left_box = slide.placeholders[27]
-    right_box = slide.placeholders[28]
-    for box, label in [(left_box, "1"), (right_box, "2")]:
-        icon = slide.shapes.add_shape(MSO_AUTO_SHAPE_TYPE.OVAL, box.left, box.top, box.width, box.height)
-        icon.fill.solid()
-        icon.fill.fore_color.rgb = RGBColor(0x00, 0x35, 0x7A)
-        icon.line.color.rgb = RGBColor(0x00, 0x35, 0x7A)
-        p = icon.text_frame.paragraphs[0]
-        p.text = label
-        p.font.size = Pt(24)
-        p.font.bold = True
-        p.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-        p.alignment = PP_ALIGN.CENTER
+    # Use template icon placeholders for cleaner Moody's visual alignment.
+    csv_icon = Path(tempfile.mkstemp(suffix="_csv_icon.png")[1])
+    mdl_icon = Path(tempfile.mkstemp(suffix="_mdl_icon.png")[1])
+    create_round_icon(csv_icon, "CSV")
+    create_round_icon(mdl_icon, "SG")
+    try:
+        slide.placeholders[37].insert_picture(str(csv_icon))
+        slide.placeholders[38].insert_picture(str(mdl_icon))
+    finally:
+        if csv_icon.exists():
+            csv_icon.unlink()
+        if mdl_icon.exists():
+            mdl_icon.unlink()
 
 
 def add_recent_topics(prs: Presentation):
@@ -210,34 +249,15 @@ def add_recent_topics(prs: Presentation):
         table.cell(0, c).text = h
 
     rows = [
-        [
-            "Renewal term",
-            "Single-year renewal instead of multi-year",
-            "Preference for flexibility in commitment horizon",
-            "Position multi-year as optional value lever, not prerequisite",
-        ],
-        [
-            "Output delivery",
-            "Quarterly calibration output in CSV",
-            "Could reduce operational burden for SCOR team",
-            "Assess delivery model and commercial treatment",
-        ],
-        [
-            "Corporate bond parameters",
-            "Clarify NumberOfBonds and Coupon settings",
-            "Directly impacts modeled returns",
-            "Provide documented parameter guidance",
-        ],
-        [
-            "Dummy values",
-            "Implication of NumberOfBonds=1 and Coupon=0",
-            "Risk of unrealistic outputs/model distortion",
-            "Run controlled test and share quantified impact",
-        ],
+        ["Renewal term", "Single-year renewal", "Keeps flexibility", "Confirm term and pricing path"],
+        ["CSV output", "Quarterly CSV calibration output", "Lower ops effort", "Assess delivery model"],
+        ["Bond parameters", "NumberOfBonds and Coupon guidance", "Affects return realism", "Issue parameter guidance note"],
+        ["Dummy values", "Effect of 1 / 0 settings", "Potential model distortion", "Run impact test and respond"],
     ]
     for r, row in enumerate(rows, start=1):
         for c, value in enumerate(row):
             table.cell(r, c).text = value
+    style_table(table)
 
 
 def add_next_steps(prs: Presentation):
