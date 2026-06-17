@@ -54,8 +54,10 @@ def set_title(slide, text: str):
 
 
 def set_placeholder_text(slide, idx: int, text: str):
-    if idx in slide.placeholders:
+    try:
         slide.placeholders[idx].text = text
+    except KeyError:
+        return
 
 
 def add_cover(prs: Presentation):
@@ -79,8 +81,8 @@ def add_exec_summary(prs: Presentation):
         "• SCOR renews annually under the long-running Moody's agreement framework.\n"
         "• 2025 renewal fee is GBP 53,950 (+3.0% vs 2024), below referenced standard uplift range.\n"
         "• Amendment formalizes legal name/address move to SCOR Managing Agency Limited, 8 Bishopsgate.\n"
-        "• Client requested one-year renewal over multi-year commitment.\n"
-        "• Recent discussions center on CSV output delivery and SG corporate-bond parameter settings."
+        "• Current SG subscription term is 23 Dec 2025 to 22 Dec 2026 (ERS/SG stack).\n"
+        "• Client requested one-year renewal and a focused call on CSV delivery and bond parameters."
     )
     set_placeholder_text(slide, 13, body)
     set_placeholder_text(slide, 15, "Sources: 2023-2025 renewals, 2025 amendment, client correspondence")
@@ -93,11 +95,11 @@ def add_contract_table(prs: Presentation):
 
     if layout_name == "Title and Table":
         ph = slide.placeholders[11]
-        table = ph.insert_table(rows=6, cols=5).table
+        table = ph.insert_table(rows=7, cols=5).table
     else:
         container = slide.placeholders[2]
         table = slide.shapes.add_table(
-            rows=6,
+            rows=7,
             cols=5,
             left=container.left,
             top=container.top,
@@ -115,6 +117,7 @@ def add_contract_table(prs: Presentation):
         ["Renewal Notification", "23 Dec 2024", "00073841.8", "Annual renewal continuity", "GBP 52,379"],
         ["Renewal Notification", "23 Dec 2025", "00073841.9", "Annual renewal continuity", "GBP 53,950"],
         ["Amendment 1", "23 Dec 2025", "00073841.9", "Name/address + sanctions clause update", "No explicit change"],
+        ["Current Subscription", "23 Dec 2025 - 22 Dec 2026", "ERS/SG stack", "Active use in capital modelling workflows", "GBP 53,950"],
     ]
     for r, row in enumerate(rows, start=1):
         for c, value in enumerate(row):
@@ -153,16 +156,18 @@ def add_use_case(prs: Presentation):
     set_placeholder_text(
         slide,
         21,
-        "Current usage\n"
-        "• Scenario Generator used for Solvency II capital modelling\n"
-        "• Team currently runs SG internally for calibration/output production",
+        "Current usage context\n"
+        "• SG is active in the ERS/SG product stack\n"
+        "• Primary users are actuarial/capital modelling teams\n"
+        "• Supports Solvency II (SII) capital analytics workflows",
     )
     set_placeholder_text(
         slide,
         22,
-        "Requested evolution\n"
-        "• Quarterly calibration output in CSV format\n"
-        "• Clarification needed on NumberOfBonds and Coupon parameters",
+        "Recent client asks (new docx)\n"
+        "• Quarterly calibration output in CSV, instead of running SG internally\n"
+        "• Clarify NumberOfBonds and Coupon parameters\n"
+        "• Assess implications of NumberOfBonds=1 and Coupon=0",
     )
 
     # Icon accents in the two content columns
@@ -239,10 +244,10 @@ def add_next_steps(prs: Presentation):
     slide = prs.slides.add_slide(get_layout(prs, "Executive Summary/Key Takeaways 2"))
     set_title(slide, "Recommended next steps")
     body = (
-        "1) Confirm one-year renewal final path and commercial narrative.\n"
+        "1) Confirm one-year renewal final path and term dates (23 Dec 2025 to 22 Dec 2026).\n"
         "2) Validate contract records reflect legal name and licensed address updates.\n"
         "3) Scope feasibility/options for quarterly CSV calibration output service.\n"
-        "4) Provide technical response on NumberOfBonds/Coupon parameter boundaries.\n"
+        "4) Provide technical response on NumberOfBonds/Coupon and dummy-value impacts.\n"
         "5) Align Sales, Product Specialist and Contracts follow-up owners."
     )
     set_placeholder_text(slide, 13, body)
@@ -254,9 +259,10 @@ def add_back_cover(prs: Presentation):
     set_placeholder_text(slide, 15, "Questions and discussion")
 
 
-def build(template_path: Path, output_path: Path):
+def build(template_path: Path, output_path: Path, clean_only: bool = False):
     normalized_template, cleanup = normalize_template_for_python_pptx(template_path)
     prs = Presentation(str(normalized_template))
+    initial_slide_count = len(prs.slides)
 
     try:
         add_cover(prs)
@@ -267,6 +273,11 @@ def build(template_path: Path, output_path: Path):
         add_recent_topics(prs)
         add_next_steps(prs)
         add_back_cover(prs)
+
+        if clean_only and initial_slide_count > 0:
+            for i in range(initial_slide_count - 1, -1, -1):
+                prs.slides._sldIdLst.remove(prs.slides._sldIdLst[i])
+
         prs.save(str(output_path))
     finally:
         if cleanup and normalized_template.exists():
@@ -285,5 +296,10 @@ if __name__ == "__main__":
         default="SCOR_Contractual_Summary_Moodys_2025_Template.pptx",
         help="Output presentation file",
     )
+    parser.add_argument(
+        "--clean-only",
+        action="store_true",
+        help="Remove template sample slides and keep only generated SCOR slides",
+    )
     args = parser.parse_args()
-    build(Path(args.template), Path(args.output))
+    build(Path(args.template), Path(args.output), clean_only=args.clean_only)
