@@ -114,17 +114,27 @@ def add_cover(prs: Presentation):
 
 
 def add_exec_summary(prs: Presentation):
-    slide = prs.slides.add_slide(get_layout(prs, "Executive Summary/Key Takeaways 1"))
+    slide = prs.slides.add_slide(get_layout(prs, "Executive Summary/Key Takeaways 3"))
     set_title(slide, "Executive summary")
-    body = (
-        "• SCOR renews annually under the long-running Moody's agreement framework.\n"
-        "• 2025 renewal fee is GBP 53,950 (+3.0% vs 2024), below referenced standard uplift range.\n"
-        "• Amendment formalizes legal name/address move to SCOR Managing Agency Limited, 8 Bishopsgate.\n"
-        "• Current SG subscription term is 23 Dec 2025 to 22 Dec 2026 (ERS/SG stack).\n"
-        "• Client requested one-year renewal and a focused call on CSV delivery and bond parameters."
+    set_placeholder_text(
+        slide,
+        15,
+        "• SCOR remains on annual renewal under Moody's agreement framework.\n"
+        "• Active SG usage in SII capital modeling with tailored calibration needs.\n"
+        "• Current focus: simplify operations while preserving model governance.",
     )
-    set_placeholder_text(slide, 13, body)
-    set_placeholder_text(slide, 15, "Sources: 2023-2025 renewals, 2025 amendment, client correspondence")
+    set_placeholder_text(slide, 13, "Sources: 2023-2025 renewals, amendment, latest client correspondence")
+
+    key_takeaways = {
+        49: "Contract\nAnnual renewal\n(1-year preference)",
+        50: "Fee trend\nGBP 53,950 in 2025\n(+3% YoY)",
+        51: "Legal update\nSCOR Managing Agency\n8 Bishopsgate",
+        52: "Use case\nSG supports SII\ncapital analytics",
+        53: "Client ask\nQuarterly CSV\ncalibration output",
+        54: "Technical topic\nNumberOfBonds/Coupon\nand dummy values",
+    }
+    for idx, text in key_takeaways.items():
+        set_placeholder_text(slide, idx, text)
 
 
 def add_contract_table(prs: Presentation):
