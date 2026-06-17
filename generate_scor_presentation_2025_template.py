@@ -114,27 +114,24 @@ def add_cover(prs: Presentation):
 
 
 def add_exec_summary(prs: Presentation):
-    slide = prs.slides.add_slide(get_layout(prs, "Executive Summary/Key Takeaways 3"))
+    slide = prs.slides.add_slide(get_layout(prs, "Executive Summary/Key Takeaways 1"))
     set_title(slide, "Executive summary")
     set_placeholder_text(
         slide,
         15,
-        "• SCOR remains on annual renewal under Moody's agreement framework.\n"
-        "• Active SG usage in SII capital modeling with tailored calibration needs.\n"
-        "• Current focus: simplify operations while preserving model governance.",
+        "• SCOR prefers a one-year renewal under the existing agreement framework.\n"
+        "• 2025 renewal fee is GBP 53,950 (+3% YoY).\n"
+        "• Amendment confirms legal name/address update to 8 Bishopsgate.",
     )
-    set_placeholder_text(slide, 13, "Sources: 2023-2025 renewals, amendment, latest client correspondence")
-
-    key_takeaways = {
-        49: "Contract\nAnnual renewal\n(1-year preference)",
-        50: "Fee trend\nGBP 53,950 in 2025\n(+3% YoY)",
-        51: "Legal update\nSCOR Managing Agency\n8 Bishopsgate",
-        52: "Use case\nSG supports SII\ncapital analytics",
-        53: "Client ask\nQuarterly CSV\ncalibration output",
-        54: "Technical topic\nNumberOfBonds/Coupon\nand dummy values",
-    }
-    for idx, text in key_takeaways.items():
-        set_placeholder_text(slide, idx, text)
+    set_placeholder_text(
+        slide,
+        18,
+        "Use case and current focus\n"
+        "• SG is actively used for Solvency II capital analytics.\n"
+        "• Client requests quarterly CSV calibration output.\n"
+        "• Technical clarifications requested on NumberOfBonds/Coupon and dummy values.",
+    )
+    set_placeholder_text(slide, 13, "Source: latest SCOR docx + renewal/amendment records")
 
 
 def add_contract_table(prs: Presentation):
