@@ -1,4 +1,7 @@
 import argparse
+import os
+import tempfile
+import zipfile
 from pathlib import Path
 
 from pptx import Presentation
@@ -15,6 +18,34 @@ def get_layout(prs: Presentation, name: str):
         if layout.name == name:
             return layout
     raise ValueError(f"Layout '{name}' not found in template.")
+
+
+def has_layout(prs: Presentation, name: str) -> bool:
+    return any(layout.name == name for layout in prs.slide_layouts)
+
+
+def normalize_template_for_python_pptx(template_path: Path) -> tuple[Path, bool]:
+    """
+    python-pptx cannot open .potx directly (template content-type).
+    Convert to a temporary .pptx package when needed.
+    Returns: (loadable_path, should_cleanup)
+    """
+    if template_path.suffix.lower() != ".potx":
+        return template_path, False
+
+    fd, temp_path = tempfile.mkstemp(suffix=".pptx")
+    os.close(fd)
+    with zipfile.ZipFile(template_path, "r") as zin, zipfile.ZipFile(temp_path, "w", zipfile.ZIP_DEFLATED) as zout:
+        for item in zin.infolist():
+            data = zin.read(item.filename)
+            if item.filename == "[Content_Types].xml":
+                data = data.replace(
+                    b"application/vnd.openxmlformats-officedocument.presentationml.template.main+xml",
+                    b"application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml",
+                )
+            zout.writestr(item, data)
+
+    return Path(temp_path), True
 
 
 def set_title(slide, text: str):
@@ -56,11 +87,24 @@ def add_exec_summary(prs: Presentation):
 
 
 def add_contract_table(prs: Presentation):
-    slide = prs.slides.add_slide(get_layout(prs, "Title and Table"))
+    layout_name = "Title and Table" if has_layout(prs, "Title and Table") else "1 Column"
+    slide = prs.slides.add_slide(get_layout(prs, layout_name))
     set_title(slide, "Contractual position summary")
 
-    ph = slide.placeholders[11]
-    table = ph.insert_table(rows=6, cols=5).table
+    if layout_name == "Title and Table":
+        ph = slide.placeholders[11]
+        table = ph.insert_table(rows=6, cols=5).table
+    else:
+        container = slide.placeholders[2]
+        table = slide.shapes.add_table(
+            rows=6,
+            cols=5,
+            left=container.left,
+            top=container.top,
+            width=container.width,
+            height=container.height,
+        ).table
+
     headers = ["Document", "Date", "Agreement Ref", "Key point", "Fee impact"]
     for c, h in enumerate(headers):
         table.cell(0, c).text = h
@@ -138,11 +182,24 @@ def add_use_case(prs: Presentation):
 
 
 def add_recent_topics(prs: Presentation):
-    slide = prs.slides.add_slide(get_layout(prs, "Title and Table"))
+    layout_name = "Title and Table" if has_layout(prs, "Title and Table") else "1 Column"
+    slide = prs.slides.add_slide(get_layout(prs, layout_name))
     set_title(slide, "Recent topics with SCOR")
 
-    ph = slide.placeholders[11]
-    table = ph.insert_table(rows=5, cols=4).table
+    if layout_name == "Title and Table":
+        ph = slide.placeholders[11]
+        table = ph.insert_table(rows=5, cols=4).table
+    else:
+        container = slide.placeholders[2]
+        table = slide.shapes.add_table(
+            rows=5,
+            cols=4,
+            left=container.left,
+            top=container.top,
+            width=container.width,
+            height=container.height,
+        ).table
+
     headers = ["Topic", "Client ask", "Why it matters", "Recommended follow-up"]
     for c, h in enumerate(headers):
         table.cell(0, c).text = h
@@ -198,18 +255,22 @@ def add_back_cover(prs: Presentation):
 
 
 def build(template_path: Path, output_path: Path):
-    prs = Presentation(str(template_path))
+    normalized_template, cleanup = normalize_template_for_python_pptx(template_path)
+    prs = Presentation(str(normalized_template))
 
-    add_cover(prs)
-    add_exec_summary(prs)
-    add_contract_table(prs)
-    add_fee_trend(prs)
-    add_use_case(prs)
-    add_recent_topics(prs)
-    add_next_steps(prs)
-    add_back_cover(prs)
-
-    prs.save(str(output_path))
+    try:
+        add_cover(prs)
+        add_exec_summary(prs)
+        add_contract_table(prs)
+        add_fee_trend(prs)
+        add_use_case(prs)
+        add_recent_topics(prs)
+        add_next_steps(prs)
+        add_back_cover(prs)
+        prs.save(str(output_path))
+    finally:
+        if cleanup and normalized_template.exists():
+            normalized_template.unlink()
 
 
 if __name__ == "__main__":
