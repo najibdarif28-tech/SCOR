@@ -119,17 +119,15 @@ def add_exec_summary(prs: Presentation):
     set_placeholder_text(
         slide,
         15,
-        "• SCOR prefers a one-year renewal under the existing agreement framework.\n"
-        "• 2025 renewal fee is GBP 53,950 (+3% YoY).\n"
-        "• Amendment confirms legal name/address update to 8 Bishopsgate.",
+        "• One-year renewal preferred under current agreement framework.\n"
+        "• 2025 fee: GBP 53,950 (+3% YoY).",
     )
     set_placeholder_text(
         slide,
         18,
         "Use case and current focus\n"
-        "• SG is actively used for Solvency II capital analytics.\n"
-        "• Client requests quarterly CSV calibration output.\n"
-        "• Technical clarifications requested on NumberOfBonds/Coupon and dummy values.",
+        "• SG actively supports Solvency II capital analytics.\n"
+        "• Client requested quarterly CSV output and parameter clarification.",
     )
     set_placeholder_text(slide, 13, "Source: latest SCOR docx + renewal/amendment records")
 
