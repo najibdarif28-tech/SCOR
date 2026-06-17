@@ -59,7 +59,7 @@ def set_placeholder_text(slide, idx: int, text: str):
         return
 
 
-def style_table(table):
+def style_table(table, body_font_size=10):
     # Moody's-inspired table styling with readable typography.
     header_fill = RGBColor(0x00, 0x35, 0x7A)
     header_text = RGBColor(0xFF, 0xFF, 0xFF)
@@ -82,7 +82,7 @@ def style_table(table):
                 cell.fill.solid()
                 cell.fill.fore_color.rgb = band_fill
             p = cell.text_frame.paragraphs[0]
-            p.font.size = Pt(10)
+            p.font.size = Pt(body_font_size)
             p.font.color.rgb = body_text
 
 
@@ -119,9 +119,8 @@ def add_exec_summary(prs: Presentation):
     set_placeholder_text(
         slide,
         15,
-        "• One-year renewal preferred under current agreement framework.\n"
-        "• 2025 fee: GBP 53,950 (+3% YoY).\n"
-        "• The Channel Managing Agency Limited transitioned to SCOR Managing Agency Limited.",
+        "• Entity transition: The Channel Managing Agency Limited renamed to SCOR Managing Agency Limited.\n"
+        "• 2025 fee: GBP 53,950 (+3% YoY).",
     )
     set_placeholder_text(
         slide,
@@ -136,15 +135,15 @@ def add_exec_summary(prs: Presentation):
 def add_contract_table(prs: Presentation):
     layout_name = "Title and Table" if has_layout(prs, "Title and Table") else "1 Column"
     slide = prs.slides.add_slide(get_layout(prs, layout_name))
-    set_title(slide, "Contractual position summary")
+    set_title(slide, "Contract history 2016-2025 (Channel -> SCOR)")
 
     if layout_name == "Title and Table":
         ph = slide.placeholders[11]
-        table = ph.insert_table(rows=7, cols=5).table
+        table = ph.insert_table(rows=11, cols=5).table
     else:
         container = slide.placeholders[2]
         table = slide.shapes.add_table(
-            rows=7,
+            rows=11,
             cols=5,
             left=container.left,
             top=container.top,
@@ -152,28 +151,26 @@ def add_contract_table(prs: Presentation):
             height=container.height,
         ).table
 
-    headers = ["Document", "Date", "Agreement Ref", "Key point", "Fee impact"]
+    headers = ["Year", "Agreement Ref", "Entity", "Contract event", "Annual fee"]
     for c, h in enumerate(headers):
         table.cell(0, c).text = h
 
     rows = [
-        ["Renewal 2023", "23 Dec 2023", "00073841.7", "Annual renewal", "GBP 50,364"],
-        ["Renewal 2024", "23 Dec 2024", "00073841.8", "Annual renewal", "GBP 52,379"],
-        ["Renewal 2025", "23 Dec 2025", "00073841.9", "Annual renewal", "GBP 53,950"],
-        [
-            "Amendment 1",
-            "23 Dec 2025",
-            "00073841.9",
-            "Name changed from Channel MA to SCOR MA + address update",
-            "No fee change",
-        ],
-        ["Current term", "23 Dec 2025 - 22 Dec 2026", "ERS/SG", "Active in SII modeling", "GBP 53,950"],
-        ["Commercial note", "2025 discussion", "Sales guidance", "3% uplift vs 6-10% standard", "Informational"],
+        ["2016", "00073841.0", "The Channel MA", "Base order form (effective 23 Dec 2016)", "N/A (baseline)"],
+        ["2017", "00073841.1", "The Channel MA", "Renewal notification", "GBP 41,400"],
+        ["2018", "00073841.2", "The Channel MA", "Renewal notification", "GBP 43,056"],
+        ["2019", "00073841.3", "The Channel MA", "Renewal notification", "GBP 44,348"],
+        ["2020", "00073841.4", "The Channel MA", "Renewal notification", "GBP 44,348"],
+        ["2021", "00073841.5", "The Channel MA", "Renewal notification", "GBP 45,900"],
+        ["2022", "00073841.6", "The Channel MA", "Renewal notification", "GBP 47,966"],
+        ["2023", "00073841.7", "The Channel MA", "Renewal notification", "GBP 50,364"],
+        ["2024", "00073841.8", "The Channel MA", "Renewal notification", "GBP 52,379"],
+        ["2025", "00073841.9", "SCOR MA (formerly Channel MA)", "Renewal + Amendment 1 (name/address update)", "GBP 53,950"],
     ]
     for r, row in enumerate(rows, start=1):
         for c, value in enumerate(row):
             table.cell(r, c).text = value
-    style_table(table)
+    style_table(table, body_font_size=9)
 
 
 def add_fee_trend(prs: Presentation):
@@ -270,7 +267,7 @@ def add_recent_topics(prs: Presentation):
     for r, row in enumerate(rows, start=1):
         for c, value in enumerate(row):
             table.cell(r, c).text = value
-    style_table(table)
+    style_table(table, body_font_size=10)
 
 
 def add_next_steps(prs: Presentation):
