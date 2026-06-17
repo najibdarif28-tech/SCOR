@@ -108,7 +108,7 @@ def add_cover(prs: Presentation):
         "Contractual position, use case and recent client topics\n"
         "Prepared using Moody's Scenario Generator template style",
     )
-    set_placeholder_text(slide, 99, "Client: SCOR Managing Agency Limited")
+    set_placeholder_text(slide, 99, "Client: SCOR Managing Agency Limited (formerly The Channel Managing Agency Limited)")
     set_placeholder_text(slide, 100, "Date: June 2026")
     set_placeholder_text(slide, 101, "Prepared by: Moody's Analytics")
 
@@ -120,7 +120,8 @@ def add_exec_summary(prs: Presentation):
         slide,
         15,
         "• One-year renewal preferred under current agreement framework.\n"
-        "• 2025 fee: GBP 53,950 (+3% YoY).",
+        "• 2025 fee: GBP 53,950 (+3% YoY).\n"
+        "• The Channel Managing Agency Limited transitioned to SCOR Managing Agency Limited.",
     )
     set_placeholder_text(
         slide,
@@ -159,7 +160,13 @@ def add_contract_table(prs: Presentation):
         ["Renewal 2023", "23 Dec 2023", "00073841.7", "Annual renewal", "GBP 50,364"],
         ["Renewal 2024", "23 Dec 2024", "00073841.8", "Annual renewal", "GBP 52,379"],
         ["Renewal 2025", "23 Dec 2025", "00073841.9", "Annual renewal", "GBP 53,950"],
-        ["Amendment 1", "23 Dec 2025", "00073841.9", "Legal name/address update", "No fee change"],
+        [
+            "Amendment 1",
+            "23 Dec 2025",
+            "00073841.9",
+            "Name changed from Channel MA to SCOR MA + address update",
+            "No fee change",
+        ],
         ["Current term", "23 Dec 2025 - 22 Dec 2026", "ERS/SG", "Active in SII modeling", "GBP 53,950"],
         ["Commercial note", "2025 discussion", "Sales guidance", "3% uplift vs 6-10% standard", "Informational"],
     ]
