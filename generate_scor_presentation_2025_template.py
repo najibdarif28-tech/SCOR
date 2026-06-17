@@ -127,7 +127,8 @@ def add_exec_summary(prs: Presentation):
         18,
         "Use case and current focus\n"
         "• SG actively supports Solvency II capital analytics.\n"
-        "• Client requested quarterly CSV output and parameter clarification.",
+        "• Client requested quarterly CSV output and parameter clarification.\n"
+        "• Risk: shift from SG engine to scenario sets only may reduce subscription fees.",
     )
     set_placeholder_text(slide, 13, "Source: latest SCOR docx + renewal/amendment records")
 
@@ -242,11 +243,11 @@ def add_recent_topics(prs: Presentation):
 
     if layout_name == "Title and Table":
         ph = slide.placeholders[11]
-        table = ph.insert_table(rows=5, cols=4).table
+        table = ph.insert_table(rows=6, cols=4).table
     else:
         container = slide.placeholders[2]
         table = slide.shapes.add_table(
-            rows=5,
+            rows=6,
             cols=4,
             left=container.left,
             top=container.top,
@@ -263,6 +264,12 @@ def add_recent_topics(prs: Presentation):
         ["CSV output", "Quarterly CSV calibration output", "Lower ops effort", "Assess delivery model"],
         ["Bond parameters", "NumberOfBonds and Coupon guidance", "Affects return realism", "Issue parameter guidance note"],
         ["Dummy values", "Effect of 1 / 0 settings", "Potential model distortion", "Run impact test and respond"],
+        [
+            "Commercial risk",
+            "Possible move from SG engine to scenario sets only",
+            "Potential reduction in subscription fees",
+            "Quantify value of SG engine and prepare retention options",
+        ],
     ]
     for r, row in enumerate(rows, start=1):
         for c, value in enumerate(row):
@@ -282,7 +289,7 @@ def add_next_steps(prs: Presentation):
         "Validate legal\nname/address\nconsistency",
         "Assess quarterly\nCSV delivery\nmodel",
         "Issue guidance on\nbond parameters\nand dummy values",
-        "Align Sales,\nProduct and\nContracts owners",
+        "Mitigate risk of\nSG to scenario-set\nmigration",
     ]
 
     icon_ids = [28, 36, 37, 38, 39]
