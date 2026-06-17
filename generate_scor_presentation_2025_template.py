@@ -191,30 +191,31 @@ def add_fee_trend(prs: Presentation):
 
 
 def add_use_case(prs: Presentation):
-    slide = prs.slides.add_slide(get_layout(prs, "2 Column, Equal - Icons"))
+    slide = prs.slides.add_slide(get_layout(prs, "2 Column, Equal - Subhead/Icons"))
     set_title(slide, "Use case and operating model")
+    set_placeholder_text(slide, 41, "SG is actively used for SII capital analytics under the ERS/SG subscription.")
+    set_placeholder_text(slide, 45, "Current operating model")
+    set_placeholder_text(slide, 46, "Requested evolution")
     set_placeholder_text(
         slide,
-        21,
-        "Current usage context\n"
-        "• SG is active in the ERS/SG product stack\n"
-        "• Primary users are actuarial/capital modelling teams\n"
-        "• Supports Solvency II (SII) capital analytics workflows",
+        43,
+        "• SCOR runs SG calibrations internally\n"
+        "• Used by actuarial and capital modeling teams\n"
+        "• Supports underwriting and regulatory workflows",
     )
     set_placeholder_text(
         slide,
-        22,
-        "Recent client asks (new docx)\n"
-        "• Quarterly calibration output in CSV, instead of running SG internally\n"
-        "• Clarify NumberOfBonds and Coupon parameters\n"
-        "• Assess implications of NumberOfBonds=1 and Coupon=0",
+        44,
+        "• Receive quarterly calibration output in CSV\n"
+        "• Clarify NumberOfBonds and Coupon guidance\n"
+        "• Assess impact of dummy values (1 / 0)",
     )
 
     # Use template icon placeholders for cleaner Moody's visual alignment.
     csv_icon = Path(tempfile.mkstemp(suffix="_csv_icon.png")[1])
     mdl_icon = Path(tempfile.mkstemp(suffix="_mdl_icon.png")[1])
-    create_round_icon(csv_icon, "CSV")
-    create_round_icon(mdl_icon, "SG")
+    create_round_icon(csv_icon, "NOW")
+    create_round_icon(mdl_icon, "NEXT")
     try:
         slide.placeholders[37].insert_picture(str(csv_icon))
         slide.placeholders[38].insert_picture(str(mdl_icon))
@@ -261,16 +262,38 @@ def add_recent_topics(prs: Presentation):
 
 
 def add_next_steps(prs: Presentation):
-    slide = prs.slides.add_slide(get_layout(prs, "Executive Summary/Key Takeaways 2"))
+    slide = prs.slides.add_slide(get_layout(prs, "5 Column - Icons"))
     set_title(slide, "Recommended next steps")
-    body = (
-        "1) Confirm one-year renewal final path and term dates (23 Dec 2025 to 22 Dec 2026).\n"
-        "2) Validate contract records reflect legal name and licensed address updates.\n"
-        "3) Scope feasibility/options for quarterly CSV calibration output service.\n"
-        "4) Provide technical response on NumberOfBonds/Coupon and dummy-value impacts.\n"
-        "5) Align Sales, Product Specialist and Contracts follow-up owners."
-    )
-    set_placeholder_text(slide, 13, body)
+    set_placeholder_text(slide, 45, "Action plan aligned to commercial, contract, and technical follow-up")
+    set_placeholder_text(slide, 46, "Source: latest SCOR correspondence and renewal documents")
+
+    labels = ["1", "2", "3", "4", "5"]
+    steps = [
+        "Confirm\n1-year renewal\nexecution",
+        "Validate legal\nname/address\nconsistency",
+        "Assess quarterly\nCSV delivery\nmodel",
+        "Issue guidance on\nbond parameters\nand dummy values",
+        "Align Sales,\nProduct and\nContracts owners",
+    ]
+
+    icon_ids = [28, 36, 37, 38, 39]
+    text_ids = [40, 47, 48, 49, 50]
+
+    icon_paths = []
+    for lbl in labels:
+        icon_path = Path(tempfile.mkstemp(suffix=f"_{lbl}.png")[1])
+        create_round_icon(icon_path, lbl)
+        icon_paths.append(icon_path)
+
+    try:
+        for idx, icon_path in zip(icon_ids, icon_paths):
+            slide.placeholders[idx].insert_picture(str(icon_path))
+        for idx, text in zip(text_ids, steps):
+            set_placeholder_text(slide, idx, text)
+    finally:
+        for icon_path in icon_paths:
+            if icon_path.exists():
+                icon_path.unlink()
 
 
 def add_back_cover(prs: Presentation):
